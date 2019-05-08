@@ -12,12 +12,17 @@ import io.vertx.ext.web.handler.graphql.VertxDataFetcher
 import java.util
 
 import graphql.schema.idl.RuntimeWiring.newRuntimeWiring
-import java.util.stream.Collectors.toList
-
+import scala.collection.JavaConverters._
 import io.vertx.lang.scala.ScalaVerticle
 
 class Server extends ScalaVerticle {
-  private var links: util.List[Link] = null
+  val peter: User = new User("Peter")
+  val paul: User = new User("Paul")
+  val jack: User = new User("Jack")
+  val links = Link("https://vertx.io", "Vert.x project", peter) ::
+    Link("https://www.eclipse.org", "Eclipse Foundation", paul) ::
+    Link("http://reactivex.io", "ReactiveX libraries", jack) ::
+    Link("https://www.graphql-java.com", "GraphQL Java implementation", peter) :: Nil
 
   override def start(): Unit = {
     prepareData()
@@ -27,14 +32,7 @@ class Server extends ScalaVerticle {
   }
 
   private def prepareData(): Unit = {
-    val peter: User = new User("Peter")
-    val paul: User = new User("Paul")
-    val jack: User = new User("Jack")
-    links = new util.ArrayList[Link]
-    links.add(new Link("https://vertx.io", "Vert.x project", peter))
-    links.add(new Link("https://www.eclipse.org", "Eclipse Foundation", paul))
-    links.add(new Link("http://reactivex.io", "ReactiveX libraries", jack))
-    links.add(new Link("https://www.graphql-java.com", "GraphQL Java implementation", peter))
+
   }
 
   private def createGraphQL: GraphQL = {
@@ -56,7 +54,7 @@ class Server extends ScalaVerticle {
 
   private def getAllLinks(env: DataFetchingEnvironment, future: Future[util.List[Link]]): Unit = {
     val secureOnly: Boolean = env.getArgument("secureOnly")
-    val result: util.List[Link] = links.stream.filter((link: Link) => !secureOnly || link.url.startsWith("https://")).collect(toList())
+    val result: util.List[Link] = links.filter((link: Link) => !secureOnly || link.url.startsWith("https://")).asJava
     future.complete(result)
   }
 }
